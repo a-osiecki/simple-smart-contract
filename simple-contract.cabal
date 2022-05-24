@@ -1,0 +1,57 @@
+Cabal-Version: 2.4
+Name: simple-contract
+Version: 0.1.0.0
+Build-Type:          Simple
+License:             Apache-2.0
+License-files:       LICENSE
+
+executable contract
+    main-is:          Main.hs
+    hs-source-dirs:   src
+    other-modules: Contract
+    default-language: Haskell2010
+    default-extensions: ImportQualifiedPost
+    ghc-options: -Wall -fobject-code -fno-ignore-interface-pragmas
+                 -fno-omit-interface-pragmas -fno-strictness
+                 -fno-spec-constr -fno-specialise -threaded
+
+    build-depends:  aeson
+                  , ansi-terminal
+                  , base >=4.9 && <5
+                  , concurrent-sc
+                  , containers
+                  , data-default
+                  , freer-extras
+                  , freer-simple
+                  , lens
+                  , foldl
+                  , openapi3
+                  , playground-common
+                  , plutus-contract
+                  , plutus-ledger
+                  , plutus-ledger-api
+                  , plutus-pab
+                  , plutus-tx
+                  , prettyprinter
+                  , purescript-bridge
+                  , row-types
+                  , servant-purescript
+                  , testnet-traces
+                  , text
+                  , serialise
+                  , bytestring
+                  , tasty
+                  , tasty-hunit
+                  , aeson-pretty
+                  , uuid-types
+                  , mtl
+                  -- Traces' dependencies
+                  , uuid
+                  , vector
+                  , bech32
+                  , unbounded-delays
+                  , aeson-qq
+                  , extra
+                  , lens-aeson
+                  , memory
+                  , req
