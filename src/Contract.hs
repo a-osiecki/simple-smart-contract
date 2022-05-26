@@ -58,7 +58,7 @@ myRedeemer = Redeemer $ PlutusTx.toBuiltinData ()
 type MySchema = Endpoint "consume" ()
 
 endpoints :: Contract () MySchema Text ()
-endpoints = forever $ handleError logError $ awaitPromise $ consumeEp
+endpoints = forever $ handleError logError $ awaitPromise consumeEp
   where
     consumeEp :: Promise () MySchema Text ()
     consumeEp = endpoint @"consume" $ consumeOp
@@ -111,7 +111,7 @@ consumeOp _ = do
 -- | OnChain logic
 {-# INLINABLE mkValidator #-}
 mkValidator :: () -> () -> ScriptContext -> Bool
-mkValidator _ _ ctx = (not . isEmpty) $ txInterval
+mkValidator _ _ ctx = (not . isEmpty) txInterval
   where
     txInterval :: POSIXTimeRange
     !txInterval = txInfoValidRange info
