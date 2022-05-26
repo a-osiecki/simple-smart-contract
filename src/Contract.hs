@@ -1,4 +1,22 @@
 {-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE ConstraintKinds    #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE BangPatterns       #-}
+
+
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 
 module Contract where
 
@@ -6,9 +24,9 @@ import           Control.Monad             (forever)
 import           Control.Lens
 import           Data.Text
 import qualified Data.Map          as Map
-import qualified Prelude as P
+import           Prelude as P
 
-import           PlutusTx.Prelude
+import           PlutusTx.Prelude hiding ((.),($),not,(++),(<>),(+))
 import qualified PlutusTx
 import           Ledger.Constraints        as Constraints
 import           Plutus.Contract           as Contract hiding (tell)
@@ -28,7 +46,7 @@ myContractInst  = Scripts.mkTypedValidator @Contracting
                   $$(PlutusTx.compile [|| Scripts.wrapValidator ||])
 
 myContractValidator :: Validator
-myContractValidator = Scripts.validatorScript myConstractInst
+myContractValidator = Scripts.validatorScript myContractInst
 
 myContractAddress :: Ledger.Address
 myContractAddress = scriptAddress myContractValidator
@@ -59,13 +77,13 @@ start = do
     _ <- submitTxConstraintsWith @Contracting lookups tx
     logInfo @String "Contract started"
 
-consumeOp :: Contract () MySchema Text ()
-consumeOp = do
+consumeOp :: () -> Contract () MySchema Text ()
+consumeOp _ = do
     ownPKH <- Contract.ownPaymentPubKeyHash
     utxos <- utxosAt myContractAddress
     (oref,outxo) <- case Map.toList utxos of
-                        [(oref, o)] -> return (oref, o)
-                        _           -> throwError "Unexpected number of UTxOs."
+                        [] -> throwError "No UTxOs available."
+                        l  -> return (P.head l)
     currTime <- currentTime
 
     let scriptValue = outxo ^. ciTxOutValue
@@ -74,19 +92,24 @@ consumeOp = do
             <> Constraints.mustValidateIn
                    (interval currTime $ currTime + windowSize)
 
-        lkp =  Constraints.unspentOutputs utxos
+        lkp =  Constraints.unspentOutputs (Map.fromList [(oref,outxo)])
             <> Constraints.typedValidatorLookups myContractInst
             <> Constraints.otherScript myContractValidator
 
-    uTx <- mkTxConstraints @Contracting lookups tx
+    uTx <- mkTxConstraints @Contracting lkp tx
     logInfo @String $ "Unbalanced transaction: " ++ show uTx
     bTx <- balanceTx uTx
     logInfo @String $ "Balanced transaction: " ++ show bTx
     _   <- submitBalancedTx bTx
     logInfo @String "Utxo consumed succesfully"
 
+  where
+    windowSize :: POSIXTime
+    windowSize = fromMilliSeconds (DiffMilliSeconds 600_000)
+
 
 -- | OnChain logic
+{-# INLINABLE mkValidator #-}
 mkValidator :: () -> () -> ScriptContext -> Bool
 mkValidator _ _ ctx = (not . isEmpty) $ txInterval
   where

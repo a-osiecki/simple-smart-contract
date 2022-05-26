@@ -1,0 +1,50 @@
+{
+  "bootStakeholders": {
+    "6728c26eee1f7dd82dd27ca9a366eb3952923f55203c5838c0c44d4e": 1,
+    "8319dcf1f12ff38fd431d872428459f45f174e838bcaaba444ec6943": 1
+  },
+  "heavyDelegation": {
+    "6728c26eee1f7dd82dd27ca9a366eb3952923f55203c5838c0c44d4e": {
+      "omega": 0,
+      "issuerPk": "DVrPNSxewNH3u/wnSxaDeznF794X7QIn1xJWY50PppUfYiZ8QWnBREld8MpP3yiIFkLA00xyrHr8nO9Grt2JhQ==",
+      "delegatePk": "jAkGQiels2CCDSRsRgQBXmCD7cuKRIuhrwGAaeI5XCUQRhlVlBlYXV/7Yt/Fg4rjuVn1gkbtN82SC35DaI6ejg==",
+      "cert": "3f69935ee87252d4c3b62c44d315d868407e79cf2a2f6db1834d265689942e3e57719a7f09ef5cf7b8df9288b74ae770af441488856f513c57abcdfdc3aff30d"
+    },
+    "8319dcf1f12ff38fd431d872428459f45f174e838bcaaba444ec6943": {
+      "omega": 0,
+      "issuerPk": "cb1ijimwHl8hvSRrq1rvpaHQOhg80jewOPev26q4h5I29FeRXApXmAnldtzbS5VYdpWoY2AYVKiwXZZPRUHX/g==",
+      "delegatePk": "hh8Wee6nFubjyWukmlme80iOQ2BoObbydbUChl5vqI3sbjcBH0/MZDrsijoWZf96UdnoL7xvauJHZDS9Hy1iDA==",
+      "cert": "ffaf8a21b43e633de5875a3f674079612da303e3eaf1cd7c598917e192cc480bb291faacb533636781ed4b0052fa308f924edf93d093aa8d7310afa6212ce607"
+    }
+  },
+  "startTime": 1636408424000,
+  "nonAvvmBalances": {
+    "5oP9ib6ym3XY6oycXpheBZn4pCbPA7Gxx7V8pboYWE4t4Q3rC66FaVGf9yYNZqTARd": "5010000000",
+    "5oP9ib6ym3XdZ38RoeZCUBuKmjFmG7qvr9AJaypAtnMEvGhR7gZHekCc9g2h3fUjQQ": "5010000000"
+  },
+  "blockVersionData": {
+    "scriptVersion": 0,
+    "slotDuration": "1000",
+    "maxBlockSize": "2000000",
+    "maxHeaderSize": "2000000",
+    "maxTxSize": "4096",
+    "maxProposalSize": "700",
+    "mpcThd": "20000000000000",
+    "heavyDelThd": "300000000000",
+    "updateVoteThd": "1000000000000",
+    "updateProposalThd": "100000000000000",
+    "updateImplicit": "10000",
+    "softforkRule": {
+      "initThd": "900000000000000",
+      "minThd": "600000000000000",
+      "thdDecrement": "50000000000000"
+    },
+    "txFeePolicy": {
+      "summand": "155381000000000",
+      "multiplier": "43946000000"
+    },
+    "unlockStakeEpoch": "18446744073709551615"
+  },
+  "protocolConsts": { "k": 10, "protocolMagic": 27182 },
+  "avvmDistr": {}
+}

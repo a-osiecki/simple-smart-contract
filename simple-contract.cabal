@@ -8,7 +8,7 @@ License-files:       LICENSE
 executable contract
     main-is:          Main.hs
     hs-source-dirs:   src
-    other-modules: Contract
+    other-modules: Contract, Trace
     default-language: Haskell2010
     default-extensions: ImportQualifiedPost
     ghc-options: -Wall -fobject-code -fno-ignore-interface-pragmas
@@ -18,7 +18,6 @@ executable contract
     build-depends:  aeson
                   , ansi-terminal
                   , base >=4.9 && <5
-                  , concurrent-sc
                   , containers
                   , data-default
                   , freer-extras
@@ -29,9 +28,11 @@ executable contract
                   , playground-common
                   , plutus-contract
                   , plutus-ledger
+                  , plutus-ledger-constraints
                   , plutus-ledger-api
                   , plutus-pab
                   , plutus-tx
+                  , plutus-tx-plugin
                   , prettyprinter
                   , purescript-bridge
                   , row-types
