@@ -13,6 +13,8 @@
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE TypeOperators      #-}
 {-# LANGUAGE BangPatterns       #-}
+{-# LANGUAGE TupleSections      #-}
+
 
 
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -22,11 +24,11 @@ module Contract where
 
 import           Control.Monad             (forever)
 import           Control.Lens
-import           Data.Text
+import           Data.Text as T
 import qualified Data.Map          as Map
 import           Prelude as P
 
-import           PlutusTx.Prelude hiding ((.),($),not,(++),(<>),(+))
+import           PlutusTx.Prelude hiding ((.),($),not,(++),(<>),(+),mapM, (<$>),maybe)
 import qualified PlutusTx
 import           Ledger.Constraints        as Constraints
 import           Plutus.Contract           as Contract hiding (tell)
@@ -69,8 +71,10 @@ run = start >> endpoints
 start :: Contract () MySchema Text ()
 start = do
     logInfo @String "Starting contract..."
+    currTime <- currentTime
 
     let tx      =   Constraints.mustPayToTheScript () (lovelaceValueOf 2_000_000)
+
         lookups =   Constraints.typedValidatorLookups myContractInst
                  <> Constraints.otherScript myContractValidator
 
@@ -79,16 +83,15 @@ start = do
 
 consumeOp :: () -> Contract () MySchema Text ()
 consumeOp _ = do
-    ownPKH <- Contract.ownPaymentPubKeyHash
-    utxos <- utxosAt myContractAddress
-    (oref,outxo) <- case Map.toList utxos of
+    utxos <- (mapM (\ (oref, o) -> ciTxOutDatum loadDatum o <&> (oref,)) . Map.toList) =<< utxosAt myContractAddress
+    logInfo @String $ "utxosAt: " <> show utxos
+    (oref,outxo) <- case  utxos of
                         [] -> throwError "No UTxOs available."
                         l  -> return (P.head l)
     currTime <- currentTime
 
     let scriptValue = outxo ^. ciTxOutValue
         tx  =  Constraints.mustSpendScriptOutput oref myRedeemer
-            <> Constraints.mustBeSignedBy ownPKH
             <> Constraints.mustValidateIn
                    (interval currTime $ currTime + windowSize)
 
@@ -102,20 +105,20 @@ consumeOp _ = do
     logInfo @String $ "Balanced transaction: " ++ show bTx
     _   <- submitBalancedTx bTx
     logInfo @String "Utxo consumed succesfully"
-
   where
     windowSize :: POSIXTime
     windowSize = fromMilliSeconds (DiffMilliSeconds 600_000)
+
+    loadDatum :: Either DatumHash Datum -> Contract w s T.Text (Either DatumHash Datum)
+    loadDatum lhd@(Left dh) = maybe lhd Right <$> datumFromHash dh
+    loadDatum d = return d
 
 
 -- | OnChain logic
 {-# INLINABLE mkValidator #-}
 mkValidator :: () -> () -> ScriptContext -> Bool
-mkValidator _ _ ctx = (not . isEmpty) txInterval
+mkValidator _ _ ctx = traceIfFalse "Invalid validation timerange" $ (not . isEmpty) txInterval
   where
     txInterval :: POSIXTimeRange
-    !txInterval = txInfoValidRange info
-
-    info :: TxInfo
-    !info = scriptContextTxInfo ctx
+    !txInterval = txInfoValidRange $ scriptContextTxInfo ctx
 

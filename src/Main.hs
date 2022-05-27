@@ -39,7 +39,7 @@ instance Pretty Contract where
     pretty = viaShow
 
 instance B.HasDefinitions Contract where
-    getDefinitions = [Init]
+    getDefinitions = []
     getSchema      = \_ -> B.endpointsToSchemas @MySchema
     getContract    = \_ -> B.SomeBuiltin C.run
 
