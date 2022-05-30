@@ -33,7 +33,6 @@ import           Plutus.Contract           as Contract hiding (tell)
 import           Plutus.V1.Ledger.Ada      (lovelaceValueOf)
 import           Ledger
 import qualified Ledger.Typed.Scripts as Scripts
-import Cardano.Wallet.LocalClient as C
 
 -- | Validator
 data Contracting
