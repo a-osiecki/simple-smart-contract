@@ -1,17 +1,9 @@
 {-# LANGUAGE NumericUnderscores #-}
-{-# LANGUAGE ConstraintKinds    #-}
 {-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeFamilies       #-}
-{-# LANGUAGE TypeOperators      #-}
 {-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE TupleSections      #-}
 
@@ -72,10 +64,10 @@ start = do
     currTime <- currentTime
 
     let tx      =   Constraints.mustPayToTheScript () (lovelaceValueOf 2_000_000)
-        lookups =   Constraints.typedValidatorLookups myContractInst
+        lkp =   Constraints.typedValidatorLookups myContractInst
                  <> Constraints.otherScript myContractValidator
 
-    _ <- submitTxConstraintsWith @Contracting lookups tx
+    _ <- submitTxConstraintsWith @Contracting lkp tx
     logInfo @String "Contract started"
 
 consumeOp :: () -> Contract () MySchema Text ()
@@ -86,8 +78,7 @@ consumeOp _ = do
                         l  -> return (P.head l)
     currTime <- currentTime
 
-    let scriptValue = outxo ^. ciTxOutValue
-        tx  =  Constraints.mustSpendScriptOutput oref myRedeemer
+    let tx  =  Constraints.mustSpendScriptOutput oref myRedeemer
             <> Constraints.mustValidateIn
                    (interval currTime $ currTime + windowSize)
 
@@ -95,24 +86,20 @@ consumeOp _ = do
             <> Constraints.typedValidatorLookups myContractInst
             <> Constraints.otherScript myContractValidator
 
-    uTx <- mkTxConstraints @Contracting lkp tx
-    logInfo @String $ "Unbalanced transaction: " ++ show uTx
-    bTx <- balanceTx uTx
-    logInfo @String $ "Balanced transaction: " ++ show bTx
-    _   <- submitBalancedTx bTx
+    _  <- submitTxConstraintsWith @Contracting lkp tx
     logInfo @String "Utxo consumed succesfully"
   where
     windowSize :: POSIXTime
     windowSize = fromMilliSeconds (DiffMilliSeconds 600_000)
 
     loadDatum :: Either DatumHash Datum -> Contract w s T.Text (Either DatumHash Datum)
-    loadDatum lhd@(Left dh) = maybe lhd Right <$> datumFromHash dh
+    loadDatum ldh@(Left dh) = maybe ldh Right <$> datumFromHash dh
     loadDatum d = return d
 
 -- | OnChain logic
 {-# INLINABLE mkValidator #-}
 mkValidator :: () -> () -> ScriptContext -> Bool
-mkValidator _ _ ctx = traceIfFalse "Invalid validation timerange" $ (not . isEmpty) txInterval
+mkValidator _ _ ctx = traceIfFalse "Empty validity timerange" $ (not . isEmpty) txInterval
   where
     txInterval :: POSIXTimeRange
     !txInterval = txInfoValidRange $ scriptContextTxInfo ctx
