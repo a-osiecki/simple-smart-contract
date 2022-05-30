@@ -63,9 +63,9 @@ start = do
     logInfo @String "Starting contract..."
     currTime <- currentTime
 
-    let tx      =   Constraints.mustPayToTheScript () (lovelaceValueOf 2_000_000)
-        lkp =   Constraints.typedValidatorLookups myContractInst
-                 <> Constraints.otherScript myContractValidator
+    let tx  =  Constraints.mustPayToTheScript () (lovelaceValueOf 2_000_000)
+        lkp =  Constraints.typedValidatorLookups myContractInst
+            <> Constraints.otherScript myContractValidator
 
     _ <- submitTxConstraintsWith @Contracting lkp tx
     logInfo @String "Contract started"
