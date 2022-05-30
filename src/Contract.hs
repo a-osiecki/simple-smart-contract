@@ -15,8 +15,6 @@
 {-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE TupleSections      #-}
 
-
-
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
@@ -35,6 +33,7 @@ import           Plutus.Contract           as Contract hiding (tell)
 import           Plutus.V1.Ledger.Ada      (lovelaceValueOf)
 import           Ledger
 import qualified Ledger.Typed.Scripts as Scripts
+import Cardano.Wallet.LocalClient as C
 
 -- | Validator
 data Contracting
@@ -74,7 +73,6 @@ start = do
     currTime <- currentTime
 
     let tx      =   Constraints.mustPayToTheScript () (lovelaceValueOf 2_000_000)
-
         lookups =   Constraints.typedValidatorLookups myContractInst
                  <> Constraints.otherScript myContractValidator
 
@@ -84,8 +82,7 @@ start = do
 consumeOp :: () -> Contract () MySchema Text ()
 consumeOp _ = do
     utxos <- (mapM (\ (oref, o) -> ciTxOutDatum loadDatum o <&> (oref,)) . Map.toList) =<< utxosAt myContractAddress
-    logInfo @String $ "utxosAt: " <> show utxos
-    (oref,outxo) <- case  utxos of
+    (oref,outxo) <- case utxos of
                         [] -> throwError "No UTxOs available."
                         l  -> return (P.head l)
     currTime <- currentTime
@@ -112,7 +109,6 @@ consumeOp _ = do
     loadDatum :: Either DatumHash Datum -> Contract w s T.Text (Either DatumHash Datum)
     loadDatum lhd@(Left dh) = maybe lhd Right <$> datumFromHash dh
     loadDatum d = return d
-
 
 -- | OnChain logic
 {-# INLINABLE mkValidator #-}
